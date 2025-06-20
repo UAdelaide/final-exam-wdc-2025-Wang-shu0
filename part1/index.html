@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dog of the Day</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    body {
+      font-family: 'Comic Sans MS', cursive;
+      background: linear-gradient(to right, red, yellow, green, cyan, blue, violet);
+      animation: blink 0.5s infinite;
+      color: #ff00ff;
+      font-size: 20px;
+      text-shadow: 2px 2px 5px black;
+    }
+
+    @keyframes blink {
+      0%, 100% { background-color: red; }
+      50% { background-color: blue; }
+    }
+
+    .button {
+      margin-top: 50px;
+      padding: 20px;
+      font-size: 40px;
+      background-color: hotpink;
+      cursor: none;
+    }
+
+    img {
+      border: 10px dotted lime;
+      filter: contrast(300%);
+      animation: spin 3s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <h1>🌈Welcome to the Dog of the Day💥🐶!</h1>
+    <button class="button" @click="getDog">CLICK THIS HUGE BUTTON NOW</button>
+    <div v-if="dog">
+      <img :src="dog" alt="" width="500" />
+      <p><strong>Name:</strong> (Dogs Name)</p>
+      <p><strong>Variety:</strong> (Teddy dog/golden retriever/...)</p>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue;
+
+    createApp({
+      data() {
+        return {
+          dog: null
+        }
+      },
+      methods: {
+        async getDog() {
+          const res = await fetch("https://dog.ceo/api/breeds/image/random");
+          const data = await res.json();
+          this.dog = data.message;
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
