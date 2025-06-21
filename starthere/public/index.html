@@ -6,7 +6,22 @@
 </head>
 
 <body>
-    <h1>Express</h1>
-    <p>Welcome to Express</p>
+<div id="app">
+    <div v-if="!isAuthenticated" class="login-container">
+        <h1>Welcome to the Dog Walking Service!</h1>
+        <form @submit.prevent="login">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" v-model="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" v-model="password" required>
+            </div>
+            <button type="submit">Log In</button>
+            <p v-if="error" class="error">{{ error }}</p >
+        </form>
+    </div>
+</div>
 </body>
 </html>
