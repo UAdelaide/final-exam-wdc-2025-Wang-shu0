@@ -11,7 +11,7 @@ const app = express();
 const dbConfig = {
   host: 'localhost',
   user: 'root',
-  password: '',
+  password: 'root',
   database: 'DogWalkService'
 };
 
