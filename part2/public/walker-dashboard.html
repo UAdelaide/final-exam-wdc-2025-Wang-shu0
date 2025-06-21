@@ -10,30 +10,23 @@
 <body class="bg-light">
   <div id="app" class="container py-4">
     <h1 class="mb-4 text-success">Walker Dashboard</h1>
-      <button id="logout-btn" class="btn btn-danger" style="position: absolute; top: 20px; right: 20px;">Logout</button>
-
-<script>
-  document.getElementById('logout-btn').addEventListener('click', async () => {
-    await fetch('/logout', { method: 'POST' });
-    window.location.href = '/';
-  });
-</script>
+    <button @click="logout" class="btn btn-danger" style="position: absolute; top: 20px; right: 20px;">Logout</button>
 
     <div v-if="message" class="alert alert-info">{{ message }}</div>
     <div v-if="error" class="alert alert-danger">{{ error }}</div>
-    
+
     <div v-if="walks.length > 0" class="row">
       <div class="col-md-6 mb-4" v-for="walk in walks" :key="walk.request_id">
         <div class="card">
           <div class="card-body">
             <h5 class="card-title">Walk for {{ walk.dog_name }} ({{ walk.size }})</h5>
             <p class="card-text">
-              <strong>Date:</strong> {{ new Date(walk.requested_time).toLocaleString() }}<br>
+              <strong>Date:</strong> {{ formatDate(walk.requested_time) }}<br>
               <strong>Duration:</strong> {{ walk.duration_minutes }} minutes<br>
               <strong>Location:</strong> {{ walk.location }}<br>
               <strong>Owner:</strong> {{ walk.owner_name }}
             </p>
-            <button type=button class="btn btn-outline-success" @click="applyToWalk(walk.request_id)">Apply</button>
+            <button class="btn btn-outline-success" @click="applyToWalk(walk.request_id)">Apply</button>
           </div>
         </div>
       </div>
@@ -42,54 +35,65 @@
   </div>
 
   <script>
-    const { createApp, ref, onMounted } = Vue;
+    const { createApp } = Vue;
 
     createApp({
-      setup() {
-        const walks = ref([]);
-        const message = ref('');
-        const error = ref('');
-        const user = 3;
-
-        async function loadWalkRequests() {
+      data() {
+        return {
+          walks: [],
+          message: '',
+          error: '',
+          walkerId: null
+        };
+      },
+      methods: {
+        async fetchCurrentUser() {
+          try {
+            const res = await fetch('/api/users/me');
+            if (!res.ok) throw new Error('Unable to get user info');
+            const data = await res.json();
+            this.walkerId = data.userId;
+          } catch (err) {
+            this.error = 'Failed to identify walker';
+          }
+        },
+        async fetchWalks() {
           try {
             const res = await fetch('/api/walks');
             if (!res.ok) throw new Error('Failed to load walk requests');
-            walks.value = await res.json();
+            this.walks = await res.json();
           } catch (err) {
-            error.value = err.message;
+            this.error = err.message;
           }
-        }
-
-        async function applyToWalk(requestId) {
+        },
+        async applyToWalk(requestId) {
           try {
             const res = await fetch(`/api/walks/${requestId}/apply`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: user })
+              body: JSON.stringify({ walker_id: this.walkerId })
             });
             const result = await res.json();
-
             if (!res.ok) throw new Error(result.error || 'Application failed');
-            message.value = result.message;
-            error.value = '';
-            await loadWalkRequests();
+            this.message = result.message;
+            this.error = '';
+            this.fetchWalks();
           } catch (err) {
-            error.value = err.message;
-            message.value = '';
+            this.error = err.message;
+            this.message = '';
           }
+        },
+        async logout() {
+          await fetch('/logout', { method: 'POST' });
+          window.location.href = '/';
+        },
+        formatDate(datetime) {
+          return new Date(datetime).toLocaleString();
         }
-
-        onMounted(() => {
-          loadWalkRequests();
-        });
-
-        return {
-          walks,
-          message,
-          error,
-          applyToWalk
-        };
+      },
+      mounted() {
+        this.fetchCurrentUser();
+        this.fetchWalks();
       }
     }).mount('#app');
   </script>
