@@ -85,6 +85,15 @@ app.get('/api/dogs', authRequired, async (req, res) => {
     res.status(500).json({ message: 'Error retrieving dogs' });
   }
 });
+app.get('/api/walk-requests', async (req, res) => {
+  try {
+    const [rows] = await db.query('SELECT * FROM WalkRequests WHERE status = "pending"');
+    res.json(rows);
+  } catch (err) {
+    console.error('Error loading walk requests:', err);
+    res.status(500).json({ error: 'Failed to load walk requests' });
+  }
+});
 
 app.get('/api/users/me', authRequired, (req, res) => {
   res.json({ userId: req.session.userId, username: req.session.username, role: req.session.role });
